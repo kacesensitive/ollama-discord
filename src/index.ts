@@ -36,19 +36,6 @@ client.on('messageCreate', async (message) => {
             console.error(err);
         }
     }
-
-    if (message.content === '!ping') {
-        storedMessage = await message.reply('Pong!');
-    }
-
-    if (message.content === '!edit' && storedMessage) {
-        await storedMessage.edit('Pong! Pong!');
-    }
-
-    if (message.content === '!delete' && storedMessage) {
-        await storedMessage.delete();
-        storedMessage = null;
-    }
 });
 
 client.login(process.env.DISCORD_BOT_TOKEN);

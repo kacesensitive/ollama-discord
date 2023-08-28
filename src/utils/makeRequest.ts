@@ -8,7 +8,7 @@ interface OllamaResponse {
     done?: boolean;
 }
 
-async function sendStringInChunks(str: string, send: (chunk: string) => Promise<void>) {
+export async function sendStringInChunks(str: string, send: (chunk: string) => Promise<void>) {
     const chunkSize = 1969;
     let index = 0;
 

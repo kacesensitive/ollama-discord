@@ -1,4 +1,4 @@
-import { Client, GatewayIntentBits, Message } from 'discord.js';
+import { Client, GatewayIntentBits, Message, TextChannel } from 'discord.js';
 import { config } from 'dotenv';
 import { makeOllamaRequest } from './utils/makeRequest';
 
@@ -10,31 +10,38 @@ const client = new Client({
         GatewayIntentBits.MessageContent,
         GatewayIntentBits.GuildMessageTyping,
         GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.GuildMessageReactions,
     ],
 });
 
-const channelIDs = process.env.CHANNELIDS?.split(',') || [];
+const channelIDs: string[] = process.env.CHANNELIDS?.split(',') || [];
+const trigger: string = process.env.TRIGGER || '!llama';
 
 client.once('ready', () => {
     console.log('Ollama Online!');
 });
 
-let storedMessage: Message | null = null;
-
-client.on('messageCreate', async (message) => {
+client.on('messageCreate', async (message: Message) => {
     if (message.author.bot) return;
-
     if (!channelIDs.includes(message.channel.id)) return;
+    if (!message.content.startsWith(trigger)) return;
 
-    if (message.content.startsWith('!llama')) {
-        message.channel.sendTyping();
-        const query = message.content.replace('!llama ', '');
-        try {
-            const result = await makeOllamaRequest(query);
-            storedMessage = await message.reply(result);
-        } catch (err) {
-            console.error(err);
-        }
+    const textChannel = message.channel as TextChannel;
+
+    const query: string = message.content.replace(trigger, '').trim();
+    if (query.length === 0) return;
+
+    const sendChunks = async (chunk: string) => {
+        await message.reply(chunk);
+    };
+
+    try {
+        await message.react('🤔');
+        await makeOllamaRequest(query, sendChunks, () => textChannel.sendTyping());
+        await message.reactions.cache.get('🤔')?.remove();
+    } catch (err: any) {
+        await message.reactions.cache.get('🤔')?.remove();
+        console.error(err);
     }
 });
 

@@ -1,4 +1,7 @@
-<img src="ollama-discord.png" width="300" height="300">
+<div align="center">
+  <img src="ollama-discord.png" width="300" height="300">
+</div>
+
 
 # Ollama Discord Bot
 

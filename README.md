@@ -1,4 +1,4 @@
-![ollama-discord](ollama-discord.png)
+<img src="ollama-discord.png" width="300" height="300">
 
 # Ollama Discord Bot
 

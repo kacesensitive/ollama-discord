@@ -1,9 +1,12 @@
+![ollama-discord](ollama-discord.png)
 
 # Ollama Discord Bot
 
 ## Overview
 
 This bot is designed to give Discord servers the power of the Ollama API for generating human-like responses. Whether you need answers to trivia, general knowledge, or just some interactive fun, this bot aims to provide that functionality seamlessly.
+
+![example](example.png)
 
 ## Prerequisites
 - [Ollama](https://github.com/jmorganca/ollama)

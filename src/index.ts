@@ -17,11 +17,23 @@ const client = new Client({
 const channelIDs: string[] = process.env.CHANNELIDS?.split(',') || [];
 const trigger: string = process.env.TRIGGER || '!llama';
 
+// Add the textChannel 
+let textChannel: TextChannel;
+
 client.once('ready', () => {
-    console.log('Ollama Online!');
+
+  // Get the text channel by ID
+  textChannel = client.channels.cache.get(channelIDs[0]) as TextChannel;
+
+  // Send startup messages
+  textChannel.send('Ollama Online! Ready to receive messages preceded by ' + trigger);
+  
+  console.log(`Ollama Online! Ready to receive messages preceded by ${trigger}`); 
 });
 
+// Rest of code
 client.on('messageCreate', async (message: Message) => {
+    console.log("Received message: ", message.content);
     if (message.author.bot) return;
     if (!channelIDs.includes(message.channel.id)) return;
     if (!message.content.startsWith(trigger)) return;
@@ -40,9 +52,12 @@ client.on('messageCreate', async (message: Message) => {
         await makeOllamaRequest(query, sendChunks, () => textChannel.sendTyping());
         await message.reactions.cache.get('🤔')?.remove();
     } catch (err: any) {
-        await message.reactions.cache.get('🤔')?.remove();
-        console.error(err);
+        console.error('Unable to remove 🤔 reaction:', err);
     }
 });
 
-client.login(process.env.DISCORD_BOT_TOKEN);
+try {
+  client.login(process.env.DISCORD_BOT_TOKEN); 
+} catch (error) {
+  console.error('Unable to login:', error);
+}

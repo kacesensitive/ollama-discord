@@ -53,7 +53,7 @@ client.on('messageCreate', async (message: Message) => {
         await makeOllamaRequest(query, sendChunks, () => textChannel.sendTyping());
         await message.reactions.cache.get('🤔')?.remove();
     } catch (err: any) {
-        console.error('Unable to remove 🤔 reaction:', err);
+        console.error('Ollama request failed, is Ollama running?)', err);
     }
 });
 

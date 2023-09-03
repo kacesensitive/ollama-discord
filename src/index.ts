@@ -25,9 +25,10 @@ client.once('ready', () => {
   // Get the text channel by ID
   textChannel = client.channels.cache.get(channelIDs[0]) as TextChannel;
 
-  // Send startup messages
-  textChannel.send('Ollama Online! Ready to receive messages preceded by ' + trigger);
+  // Send startup message (uncomment to send to Discord channel)
+  // textChannel.send('Ollama Online! Ready to receive messages preceded by ' + trigger);
   
+  // Startup message to console
   console.log(`Ollama Online! Ready to receive messages preceded by ${trigger}`); 
 });
 

@@ -16,25 +16,14 @@ const client = new Client({
 
 const channelIDs: string[] = process.env.CHANNELIDS?.split(',') || [];
 const trigger: string = process.env.TRIGGER || '!llama';
-
-// Add the textChannel 
 let textChannel: TextChannel;
 
 client.once('ready', () => {
-
-  // Get the text channel by ID
   textChannel = client.channels.cache.get(channelIDs[0]) as TextChannel;
-
-  // Send startup message (uncomment to send to Discord channel)
-  // textChannel.send('Ollama Online! Ready to receive messages preceded by ' + trigger);
-  
-  // Startup message to console
   console.log(`Ollama Online! Ready to receive messages preceded by ${trigger}`); 
 });
 
-// Rest of code
 client.on('messageCreate', async (message: Message) => {
-    console.log("Received message: ", message.content);
     if (message.author.bot) return;
     if (!channelIDs.includes(message.channel.id)) return;
     if (!message.content.startsWith(trigger)) return;
@@ -44,13 +33,22 @@ client.on('messageCreate', async (message: Message) => {
     const query: string = message.content.replace(trigger, '').trim();
     if (query.length === 0) return;
 
-    const sendChunks = async (chunk: string) => {
-        await message.reply(chunk);
-    };
+    let botResponseMessage: Message | null = null;
+
+    async function sendChunk(chunk: string) {
+      console.log(`Sending chunk: ${chunk}`);
+      if (!chunk.trim()) return;
+
+      if (botResponseMessage === null) {
+          botResponseMessage = await textChannel.send(chunk);
+      } else {
+          await botResponseMessage.edit(botResponseMessage.content + chunk);
+      }
+    }
 
     try {
         await message.react('🤔');
-        await makeOllamaRequest(query, sendChunks, () => textChannel.sendTyping());
+        await makeOllamaRequest(query, sendChunk, () => textChannel.sendTyping());
         await message.reactions.cache.get('🤔')?.remove();
     } catch (err: any) {
         console.error('Ollama request failed, is Ollama running?)', err);

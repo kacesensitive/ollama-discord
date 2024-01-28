@@ -1,24 +1,7 @@
-import axios, { AxiosResponse } from 'axios';
+import ollama from 'ollama';
 import { config } from 'dotenv';
 
 config();
-
-interface OllamaResponse {
-    response?: string;
-    done?: boolean;
-}
-
-export async function sendStringInChunks(str: string, send: (chunk: string) => Promise<void>) {
-    const chunkSize = 1969;
-    let index = 0;
-
-    while (index < str.length) {
-        const chunk = str.slice(index, index + chunkSize);
-        await send(chunk);
-        index += chunkSize;
-    }
-}
-
 
 export async function makeOllamaRequest(prompt: string, sendChunks: (chunk: string) => Promise<void>, type: () => Promise<void>): Promise<void> {
 
@@ -29,45 +12,17 @@ export async function makeOllamaRequest(prompt: string, sendChunks: (chunk: stri
         throw new Error("Missing OLLAMAURL or CUSTOMMODEL in environment variables.");
     }
 
-    const requestData = {
-        model,
-        prompt,
-    };
-
-    let fullResponse: string = '';
+    console.log(`Making request to ${ollamaURL} with model ${model} with prompt ${prompt}`);
 
     return new Promise<void>(async (resolve, reject) => {
         try {
-            const response: AxiosResponse = await axios.post(`http://${ollamaURL}/api/generate`, requestData, {
-                headers: { 'Content-Type': 'application/json' },
-                responseType: 'stream',
-            });
 
-            response.data.on('data', (chunk: Buffer) => {
-                const chunkString: string = chunk.toString('utf8');
-                const parsed: OllamaResponse = JSON.parse(chunkString);
-
-                if (parsed.hasOwnProperty('response')) {
-                    fullResponse += parsed.response;
-                }
-
-                if (parsed.hasOwnProperty('done') && parsed.done) {
-                    sendStringInChunks(fullResponse, async (chunk: string) => {
-                        await type();
-                        await sendChunks(chunk);
-                    }).then(() => {
-                        console.log("All chunks sent.");
-                        resolve();
-                    }).catch((err) => {
-                        console.log(`An error occurred: ${err}`);
-                        reject(err);
-                    });
-                }
-            });
-
-            response.data.on('error', (err: any) => {
-                reject(err);
-            });
+            const response = await ollama.chat({ model: 'llama2', messages: [{ content: prompt, role: 'user' }], stream: true })
+            for await (const part of response) {
+                await type();
+                await sendChunks(part.message.content);
+            }
+            resolve();
         } catch (err: any) {
             if (err instanceof Error) {
                 reject(`Error: ${err.message}`);

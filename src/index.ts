@@ -48,6 +48,7 @@ client.on('messageCreate', async (message: Message) => {
 
     try {
         await message.react('🤔');
+        textChannel.sendTyping();
         await makeOllamaRequest(query, sendChunk, () => textChannel.sendTyping());
         await message.reactions.cache.get('🤔')?.remove();
     } catch (err: any) {
